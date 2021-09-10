@@ -12,6 +12,8 @@ export default class AuthController {
       password,
     })
 
+    await user.related('account').create({})
+    await user.load('account')
     return user
   }
 
