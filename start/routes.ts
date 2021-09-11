@@ -38,9 +38,15 @@ Route.group(() => {
   Route.post('fund-account', 'AccountController.fundAccount')
   Route.post('send-money', 'AccountController.sendMoney')
   Route.get('', 'AccountController.getDetails')
+  Route.post('beneficiary', 'AccountController.addBeneficiary')
 })
   .prefix('account')
   .middleware('auth')
+
+Route.get('bank', async () => {
+  const banks = await PaystackApi.getBanks()
+  return { data: banks.map((bank) => bank.name) }
+})
 
 Route.get('callback', async ({ request }) => {
   const { reference } = request.qs()

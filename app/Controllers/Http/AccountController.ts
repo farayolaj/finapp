@@ -2,8 +2,10 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database'
 import PaystackApi from 'App/Common/PaystackApi'
 import InsufficientFundException from 'App/Exceptions/InsufficientFundException'
+import InvalidBankException from 'App/Exceptions/InvalidBankException'
 import Transaction from 'App/Models/Transaction'
 import User from 'App/Models/User'
+import AddBeneficiaryValidator from 'App/Validators/AddBeneficiaryValidator'
 import FundAccountValidator from 'App/Validators/FundAccountValidator'
 import SendMoneyValidator from 'App/Validators/SendMoneyValidator'
 
@@ -67,7 +69,25 @@ export default class AccountController {
   public async getDetails({ auth }: HttpContextContract) {
     const user = auth.user as User
     await user.load('account')
+    await user.account.load('beneficiaries')
 
     return user.account
+  }
+
+  public async addBeneficiary({ auth, request }: HttpContextContract) {
+    const { bankName, accountNumber } = await request.validate(AddBeneficiaryValidator)
+
+    const banks = await PaystackApi.getBanks()
+    const bank = banks.find((bank) => bank.name === bankName)
+    if (!bank) throw new InvalidBankException()
+    const { accountName } = await PaystackApi.resolveAccount(accountNumber, bank.code)
+
+    const user = auth.user as User
+    await user.load('account')
+    const beneficiary = await user.account
+      .related('beneficiaries')
+      .create({ accountName, accountNumber, bankCode: bank.code, bankName: bank.name })
+
+    return beneficiary
   }
 }

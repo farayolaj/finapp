@@ -1,11 +1,11 @@
 import { Exception } from '@adonisjs/core/build/standalone'
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
-export default class InsufficientFundException extends Exception {
+export default class InvalidBankException extends Exception {
   constructor(
-    message: string = 'Your balance is not enough to complete the transaction',
-    status: number = 403,
-    errorCode: string = 'InsufficientFund'
+    message: string = 'Get a list of valid bank names from `/banks`',
+    status: number = 400,
+    errorCode: string = 'InvalidBank'
   ) {
     super(message, status, errorCode)
   }
