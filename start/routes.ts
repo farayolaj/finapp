@@ -33,6 +33,7 @@ Route.group(() => {
 
 Route.group(() => {
   Route.post('fund-account', 'AccountController.fundAccount')
+  Route.post('send-money', 'AccountController.sendMoney')
 })
   .prefix('account')
   .middleware('auth')

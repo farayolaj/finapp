@@ -22,7 +22,7 @@ export default class User extends BaseModel {
   @hasOne(() => Account)
   public account: HasOne<typeof Account>
 
-  @column()
+  @column({ serializeAs: null })
   public rememberMeToken?: string
 
   @column.dateTime({ autoCreate: true })
