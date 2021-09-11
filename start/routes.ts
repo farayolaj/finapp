@@ -21,10 +21,13 @@
 import Route from '@ioc:Adonis/Core/Route'
 import PaystackApi from 'App/Common/PaystackApi'
 import PaystackEventHandler from 'App/Common/PaystackEventHandler'
+import User from 'App/Models/User'
 
-Route.get('/', async () => {
-  return { hello: 'world' }
-})
+Route.get('me', async ({ auth }) => {
+  const user = auth.user as User
+
+  return user
+}).middleware('auth')
 
 Route.group(() => {
   Route.post('signup', 'AuthController.signUp')
@@ -34,6 +37,7 @@ Route.group(() => {
 Route.group(() => {
   Route.post('fund-account', 'AccountController.fundAccount')
   Route.post('send-money', 'AccountController.sendMoney')
+  Route.get('', 'AccountController.getDetails')
 })
   .prefix('account')
   .middleware('auth')

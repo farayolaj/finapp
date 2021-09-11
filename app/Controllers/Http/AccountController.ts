@@ -63,4 +63,11 @@ export default class AccountController {
       }
     }
   }
+
+  public async getDetails({ auth }: HttpContextContract) {
+    const user = auth.user as User
+    await user.load('account')
+
+    return user.account
+  }
 }
