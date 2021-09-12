@@ -1,23 +1,3 @@
-/*
-|--------------------------------------------------------------------------
-| Routes
-|--------------------------------------------------------------------------
-|
-| This file is dedicated for defining HTTP routes. A single file is enough
-| for majority of projects, however you can define routes in different
-| files and just make sure to import them inside this file. For example
-|
-| Define routes in following two files
-| ├── start/routes/cart.ts
-| ├── start/routes/customer.ts
-|
-| and then import them inside `start/routes.ts` as follows
-|
-| import './routes/cart'
-| import './routes/customer'
-|
-*/
-
 import Route from '@ioc:Adonis/Core/Route'
 import PaystackApi from 'App/Common/PaystackApi'
 import PaystackEventHandler from 'App/Common/PaystackEventHandler'
@@ -39,6 +19,8 @@ Route.group(() => {
   Route.post('send-money', 'AccountController.sendMoney')
   Route.get('', 'AccountController.getDetails')
   Route.post('beneficiary', 'AccountController.addBeneficiary')
+  Route.post('withdraw', 'AccountController.withdraw')
+  Route.get('transaction', 'AccountController.getTransactions')
 })
   .prefix('account')
   .middleware('auth')
@@ -70,6 +52,13 @@ Route.post('webhook', async ({ request }) => {
         status: data.status,
       })
       break
+    case 'transfer.success':
+      PaystackEventHandler.handleTransferSuccess({
+        amount: data.amount,
+        accountName: data.recipient.details.accountName,
+        email: data.recipient.metadata.email,
+        status: data.status,
+      })
   }
 
   return

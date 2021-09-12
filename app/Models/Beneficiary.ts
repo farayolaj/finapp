@@ -20,6 +20,9 @@ export default class Beneficiary extends BaseModel {
   @column()
   public accountId: number
 
+  @column()
+  public recipientCode: string
+
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 

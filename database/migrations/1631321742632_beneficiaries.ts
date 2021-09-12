@@ -10,6 +10,7 @@ export default class Beneficiaries extends BaseSchema {
       table.string('bank_code', 5)
       table.string('account_number', 11)
       table.string('account_name', 255)
+      table.string('recipient_code')
       table
         .integer('account_id')
         .unsigned()
