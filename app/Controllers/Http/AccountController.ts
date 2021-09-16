@@ -18,7 +18,10 @@ export default class AccountController {
       amount: amount.toString(),
     })
 
-    return { authorization_url: data.authorization_url }
+    return {
+      message: 'Follow authorization url to complete payment',
+      data: { authorizationUrl: data.authorization_url },
+    }
   }
 
   public async sendMoney({ auth, request }: HttpContextContract) {
@@ -72,7 +75,7 @@ export default class AccountController {
     await user.load('account')
     await user.account.load('beneficiaries')
 
-    return user.account
+    return { message: 'User details fetched successfully', data: user.account }
   }
 
   public async addBeneficiary({ auth, request }: HttpContextContract) {
@@ -99,7 +102,7 @@ export default class AccountController {
       bankName: bank.name,
     })
 
-    return beneficiary
+    return { message: 'Beneficiary successfully created', data: beneficiary }
   }
 
   public async withdraw({ auth, request }: HttpContextContract) {
@@ -121,7 +124,7 @@ export default class AccountController {
       recipient: beneficiary.recipientCode,
     })
 
-    return { status }
+    return { message: 'Transaction is been processed', data: { status } }
   }
 
   public async getTransactions({ auth }: HttpContextContract) {
@@ -130,6 +133,6 @@ export default class AccountController {
       .where('recipient', user.email)
       .orWhere('sender', user.email)
 
-    return transactions
+    return { message: 'Transactions fetched', data: transactions }
   }
 }

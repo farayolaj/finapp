@@ -6,7 +6,7 @@ import User from 'App/Models/User'
 Route.get('me', async ({ auth }) => {
   const user = auth.user as User
 
-  return user
+  return { message: 'Fetched signed in user', data: user }
 }).middleware('auth')
 
 Route.group(() => {
@@ -27,7 +27,7 @@ Route.group(() => {
 
 Route.get('bank', async () => {
   const banks = await PaystackApi.getBanks()
-  return { data: banks.map((bank) => bank.name) }
+  return { message: 'List of valid banks fetched', data: banks.map((bank) => bank.name) }
 })
 
 Route.get('callback', async ({ request }) => {

@@ -14,14 +14,17 @@ export default class AuthController {
 
     await user.related('account').create({})
     await user.load('account')
-    return user
+    return { message: 'User successfully created', data: user }
   }
 
   public async signIn({ auth, request }: HttpContextContract) {
     const { email, password } = request.body()
     const token = await auth.attempt(email, password)
     return {
-      accessToken: token,
+      message: 'Sign in successful',
+      data: {
+        accessToken: token,
+      },
     }
   }
 }
