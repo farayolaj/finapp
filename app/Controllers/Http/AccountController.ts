@@ -2,7 +2,8 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database'
 import PaystackApi from 'App/Common/PaystackApi'
 import InsufficientFundException from 'App/Exceptions/InsufficientFundException'
-import InvalidBankException from 'App/Exceptions/InvalidBankException'
+import RecipientNotFoundException from 'App/Exceptions/RecipientNotFoundException'
+import TransactionFailedException from 'App/Exceptions/TransactionFailedException'
 import Transaction from 'App/Models/Transaction'
 import User from 'App/Models/User'
 import AddBeneficiaryValidator from 'App/Validators/AddBeneficiaryValidator'
@@ -32,7 +33,8 @@ export default class AccountController {
 
     if (amount > userAccount.balance) throw new InsufficientFundException()
 
-    const recipient = await User.findByOrFail('email', email)
+    const recipient = await User.findBy('email', email)
+    if (!recipient) throw new RecipientNotFoundException()
     await recipient.load('account')
     const recipientAccount = await recipient.account
 
@@ -64,9 +66,7 @@ export default class AccountController {
       }
     } catch (e) {
       await trx.rollback()
-      return {
-        error: 'Transaction failed',
-      }
+      throw new TransactionFailedException()
     }
   }
 
@@ -79,18 +79,17 @@ export default class AccountController {
   }
 
   public async addBeneficiary({ auth, request }: HttpContextContract) {
-    const { bankName, accountNumber } = await request.validate(AddBeneficiaryValidator)
-
-    const banks = await PaystackApi.getBanks()
-    const bank = banks.find((bank) => bank.name === bankName)
-    if (!bank) throw new InvalidBankException()
-    const { accountName } = await PaystackApi.resolveAccount(accountNumber, bank.code)
+    const { bankCode, accountNumber } = await request.validate(AddBeneficiaryValidator)
+    const { accountName } = await PaystackApi.resolveAccount(accountNumber, bankCode)
     const { recipientCode } = await PaystackApi.transferRecipient({
       name: accountName,
-      bankCode: bank.code,
+      bankCode: bankCode,
       email: auth.user?.email || '',
       accountNumber,
     })
+
+    const banks = await PaystackApi.getBanks()
+    const bankName = banks.find((bank) => bank.code === bankCode)?.name
 
     const user = auth.user as User
     await user.load('account')
@@ -98,8 +97,8 @@ export default class AccountController {
       accountName,
       recipientCode,
       accountNumber,
-      bankCode: bank.code,
-      bankName: bank.name,
+      bankCode: bankCode,
+      bankName: bankName,
     })
 
     return { message: 'Beneficiary successfully created', data: beneficiary }
@@ -109,17 +108,16 @@ export default class AccountController {
     const { beneficiaryId, amount } = await request.validate(WithdrawValidator)
     const user = auth.user as User
 
-    await user.load('account', (builder) => builder.preload('beneficiaries'))
+    await user.load('account', (builder) =>
+      builder.preload('beneficiaries', (query) => query.where('id', beneficiaryId))
+    )
 
     if (user.account.balance < amount) throw new InsufficientFundException()
 
-    const beneficiary = user.account.beneficiaries.find((ben) => ben.id === beneficiaryId)
-
+    const beneficiary = user.account.beneficiaries[0]
     if (!beneficiary) throw new Error('Beneficiary does not exist')
 
     const { status } = await PaystackApi.transfer({
-      email: user.email,
-      accountName: beneficiary.accountName,
       amount,
       recipient: beneficiary.recipientCode,
     })

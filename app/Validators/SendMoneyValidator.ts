@@ -6,8 +6,10 @@ export default class SendMoneyValidator {
 
   public schema = schema.create({
     email: schema.string({}, [rules.email()]),
-    amount: schema.number(),
+    amount: schema.number([rules.unsigned()]),
   })
 
-  public messages = {}
+  public messages = {
+    'amount.unsigned': 'You cannot send negative amounts',
+  }
 }

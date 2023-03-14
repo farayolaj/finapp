@@ -2,6 +2,7 @@ import Env from '@ioc:Adonis/Core/Env'
 import Logger from '@ioc:Adonis/Core/Logger'
 import InternalServerException from 'App/Exceptions/InternalServerException'
 import InvalidAccountNumberException from 'App/Exceptions/InvalidAccountNumberException'
+import InvalidBankException from 'App/Exceptions/InvalidBankException'
 import axios from 'axios'
 
 export default class PaystackApi {
@@ -62,6 +63,7 @@ export default class PaystackApi {
       }
     } catch (e) {
       if (e?.response?.status === 422) throw new InvalidAccountNumberException()
+      else if (e?.response?.status === 400) throw new InvalidBankException()
       else {
         Logger.error(e)
         throw new InternalServerException()
@@ -101,17 +103,7 @@ export default class PaystackApi {
     return { recipientCode: res.data.data.recipient_code }
   }
 
-  public static async transfer({
-    amount,
-    recipient,
-    email,
-    accountName,
-  }: {
-    amount: number
-    recipient: string
-    email: string
-    accountName: string
-  }) {
+  public static async transfer({ amount, recipient }: { amount: number; recipient: string }) {
     const url = `${PaystackApi.baseUrl}/transfer`
     const data = {
       amount: amount,
@@ -119,11 +111,16 @@ export default class PaystackApi {
       source: 'balance',
     }
 
-    /* const res = await axios.post(url, data, {
-      headers: { Authorization: PaystackApi.authorization },
-    }) */
+    try {
+      const res = await axios.post(url, data, {
+        headers: { Authorization: PaystackApi.authorization },
+      })
 
-    setTimeout(() => {
+      console.log('data', res.data)
+    } catch (err) {
+      console.error(err.res)
+    }
+    /* setTimeout(() => {
       axios
         .post(`http://localhost:${Env.get('PORT')}/webhook`, {
           event: 'transfer.success',
@@ -142,7 +139,7 @@ export default class PaystackApi {
         })
         .catch(() => {})
     }, 3000)
-
+ */
     return { status: 'success' }
   }
 }

@@ -5,7 +5,7 @@ export default class AddBeneficiaryValidator {
   constructor(protected ctx: HttpContextContract) {}
 
   public schema = schema.create({
-    bankName: schema.string(),
+    bankCode: schema.string(),
     accountNumber: schema.string({ trim: true }, [rules.minLength(10)]),
   })
 

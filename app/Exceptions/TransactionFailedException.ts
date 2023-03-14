@@ -1,11 +1,11 @@
 import { Exception } from '@adonisjs/core/build/standalone'
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
-export default class InvalidBankException extends Exception {
+export default class TransactionFailedException extends Exception {
   constructor(
-    message: string = 'Get a list of valid banks from `/banks`',
-    status: number = 400,
-    errorCode: string = 'InvalidBank'
+    message: string = 'Transaction could not be completed successfully',
+    status: number = 502,
+    errorCode: string = 'TransactionFailed'
   ) {
     super(message, status, errorCode)
   }

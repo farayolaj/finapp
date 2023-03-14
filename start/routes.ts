@@ -27,7 +27,7 @@ Route.group(() => {
 
 Route.get('bank', async () => {
   const banks = await PaystackApi.getBanks()
-  return { message: 'List of valid banks fetched', data: banks.map((bank) => bank.name) }
+  return { message: 'List of valid banks fetched', data: banks }
 })
 
 Route.get('callback', async ({ request }) => {
